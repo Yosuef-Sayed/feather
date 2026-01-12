@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -126,6 +128,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               ),
             ),
             child: RefreshIndicator(
+              edgeOffset: MediaQuery.of(context).padding.top + kToolbarHeight,
               onRefresh: () async {
                 if (widget.city != null) {
                   await provider.loadWeather(

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:feather/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:feather/features/weather/presentation/providers/weather_provider.dart';
