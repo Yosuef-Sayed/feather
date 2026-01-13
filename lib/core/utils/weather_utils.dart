@@ -153,16 +153,16 @@ class WeatherUtils {
   static List<Color> getWeatherGradient(int code, {bool isNight = false}) {
     if (isNight) {
       return [
-        const Color(0xFF1A237E), // Deep Blue
-        const Color(0xFF311B92), // Deep Purple
+        const Color(0xFF0D1231), // Darker Deep Blue
+        const Color(0xFF1A104E), // Darker Deep Purple
       ];
     }
 
     switch (code) {
       case 0: // Sunny/Clear
         return [
-          const Color(0xFF4FC3F7), // Light Blue
-          const Color(0xFF2196F3), // Blue
+          const Color(0xFF1565C0), // Blue
+          const Color(0xFF0D47A1), // Darker Blue
         ];
       // Maybe Orange/Yellow as requested for Sunny
       // "Sunny: Yellow/orange gradients"
@@ -177,7 +177,10 @@ class WeatherUtils {
       case 1:
       case 2:
       case 3: // Cloudy
-        return [const Color(0xFF90A4AE), const Color(0xFF546E7A)]; // Gray
+        return [
+          const Color(0xFF546E7A),
+          const Color(0xFF37474F),
+        ]; // Darker Gray
       case 51:
       case 53:
       case 55:
@@ -188,19 +191,19 @@ class WeatherUtils {
       case 81:
       case 82: // Rain
         return [
-          const Color(0xFF37474F),
           const Color(0xFF263238),
-        ]; // Dark Blue/Gray
+          const Color(0xFF101416),
+        ]; // Darker Dark Blue/Gray
       case 71:
       case 73:
       case 75: // Snow
-        return [const Color(0xFFB3E5FC), const Color(0xFF81D4FA)];
+        return [const Color(0xFF29B6F6), const Color(0xFF0288D1)];
       case 95:
       case 96:
       case 99: // Thunderstorm
-        return [const Color(0xFF2C3E50), const Color(0xFF4CA1AF)];
+        return [const Color(0xFF1C2833), const Color(0xFF2E4053)];
       default:
-        return [const Color(0xFF42A5F5), const Color(0xFF1E88E5)];
+        return [const Color(0xFF1565C0), const Color(0xFF0D47A1)];
     }
   }
 }

@@ -3,7 +3,8 @@
 import 'package:feather/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:feather/features/weather/presentation/providers/weather_provider.dart';
-import 'package:feather/features/weather/services/weather_service.dart';
+import 'package:feather/features/weather/data/datasources/remote/weather_remote_datasource.dart';
+import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
 import 'package:feather/core/services/location_service.dart';
 import 'package:provider/provider.dart';
 
@@ -20,10 +21,11 @@ class MainApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => WeatherProvider(
-            weatherService: WeatherService(),
+            weatherRemoteDataSource: WeatherRemoteDataSource(),
             locationService: LocationService(),
           ),
         ),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MaterialApp.router(
         theme: ThemeData(

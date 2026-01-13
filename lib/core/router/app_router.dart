@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:feather/features/weather/presentation/views/weather_screen.dart';
 import 'package:feather/features/weather/presentation/views/cities_list_screen.dart';
 import 'package:feather/features/weather/presentation/views/search_screen.dart';
+import 'package:feather/features/settings/presentation/views/settings_screen.dart';
 import 'package:feather/features/weather/data/models/city.dart';
 
 final appRouter = GoRouter(
@@ -20,5 +21,9 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
   ],
 );

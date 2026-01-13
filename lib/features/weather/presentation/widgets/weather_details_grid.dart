@@ -3,6 +3,9 @@ import 'package:feather/features/weather/data/models/weather.dart';
 import 'package:feather/core/theme/glass_container.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:weather_icons/weather_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
+import 'package:feather/core/utils/unit_converters.dart';
 
 class WeatherDetailsGrid extends StatelessWidget {
   final Weather weather;
@@ -11,8 +14,9 @@ class WeatherDetailsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get current index logic
     final now = DateTime.now();
+    final settings = context.watch<SettingsProvider>();
+
     int index = 0;
     if (weather.hourly?.time != null) {
       final currentHourStr = now.toIso8601String().substring(0, 13);
@@ -26,12 +30,53 @@ class WeatherDetailsGrid extends StatelessWidget {
 
     final uv = weather.daily?.uvIndexMax?.isNotEmpty == true
         ? weather.daily!.uvIndexMax![0]
-        : 0; // Today usually index 0
+        : 0;
     final humidity = weather.hourly?.relativeHumidity2m?[index];
-    final windSpeed = weather.hourly?.windSpeed10m?[index];
-    final visibility = weather.hourly?.visibility?[index]; // m
-    final pressure = weather.hourly?.pressureMsl?[index];
-    final apparentTemp = weather.hourly?.apparentTemperature?[index];
+    final rawWindSpeed =
+        (weather.hourly?.windSpeed10m?[index] as num?)?.toDouble() ?? 0.0;
+    final rawVisibility =
+        (weather.hourly?.visibility?[index] as num?)?.toDouble() ?? 0.0;
+    final rawPressure =
+        (weather.hourly?.pressureMsl?[index] as num?)?.toDouble() ?? 0.0;
+    final rawApparentTemp =
+        (weather.hourly?.apparentTemperature?[index] as num?)?.toDouble() ??
+        0.0;
+    final rawActualTemp =
+        (weather.hourly?.temperature2m?[index] as num?)?.toDouble() ?? 0.0;
+
+    // Converted Values
+    final windSpeed = UnitConverters.convertWindSpeed(
+      rawWindSpeed,
+      settings.windSpeedUnit,
+    );
+    final visibility = UnitConverters.convertDistance(
+      rawVisibility / 1000,
+      settings.distanceUnit,
+    );
+    final pressure = UnitConverters.convertPressure(
+      rawPressure,
+      settings.pressureUnit,
+    );
+    final apparentTemp = UnitConverters.convertTemperature(
+      rawApparentTemp,
+      settings.tempUnit,
+    );
+    final actualTemp = UnitConverters.convertTemperature(
+      rawActualTemp,
+      settings.tempUnit,
+    );
+
+    // Symbols
+    final tempSymbol = UnitConverters.getTemperatureSymbol(settings.tempUnit);
+    final windSymbol = UnitConverters.getWindSpeedSymbol(
+      settings.windSpeedUnit,
+    );
+    final pressureSymbol = UnitConverters.getPressureSymbol(
+      settings.pressureUnit,
+    );
+    final distanceSymbol = UnitConverters.getDistanceSymbol(
+      settings.distanceUnit,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -51,32 +96,33 @@ class WeatherDetailsGrid extends StatelessWidget {
           ),
           _buildDetailCard(
             "Feels Like",
-            "${apparentTemp?.round() ?? '-'}°",
-            "Actual: ${weather.hourly?.temperature2m?[index]?.round() ?? '-'}°",
+            "${apparentTemp.round()}$tempSymbol",
+            "Actual: ${actualTemp.round()}$tempSymbol",
             WeatherIcons.thermometer,
           ),
           _buildDetailCard(
             "Humidity",
             "$humidity%",
-            "Dew point: -",
+            "Comfortable",
+            // Note: Data doesn't have dew point currently
             WeatherIcons.humidity,
           ),
           _buildDetailCard(
             "Wind",
-            "$windSpeed km/h",
-            "Direction: -",
+            "${windSpeed.round()} $windSymbol",
+            "Speed",
             WeatherIcons.strong_wind,
           ),
           _buildDetailCard(
             "Pressure",
-            "$pressure hPa",
+            "${pressure.round()} $pressureSymbol",
             "Mean Sea Level",
             WeatherIcons.barometer,
           ),
           _buildDetailCard(
             "Visibility",
-            "${((visibility as num?)?.toDouble() ?? 0) / 1000} km",
-            _getVisibilityDescription(visibility ?? 0),
+            "${visibility.toStringAsFixed(1)} $distanceSymbol",
+            _getVisibilityDescription(rawVisibility),
             WeatherIcons.day_haze,
           ),
         ],

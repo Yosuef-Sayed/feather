@@ -12,22 +12,28 @@ class CitiesListScreen extends StatefulWidget {
 }
 
 class _CitiesListScreenState extends State<CitiesListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WeatherProvider>().loadSavedCities();
-      // Also ensure we have current location name available?
-      // Maybe not strictly necessary if we just label it "Current Location"
-      // but nice to have.
       context.read<WeatherProvider>().loadCurrentLocationWeather();
     });
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Dark theme matching app
+      backgroundColor: const Color(0xFF121212), // Darker theme
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         surfaceTintColor: Colors.transparent,
@@ -52,33 +58,98 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
       body: Consumer<WeatherProvider>(
         builder: (context, provider, child) {
           final savedCities = provider.savedCities;
+          final filteredCities = savedCities.where((city) {
+            final query = _searchQuery.toLowerCase();
+            return city.name.toLowerCase().contains(query) ||
+                city.displayName.toLowerCase().contains(query);
+          }).toList();
 
-          return ListView.builder(
-            itemCount: savedCities.length + 1, // +1 for Current Location
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _buildCityTile(
-                  context,
-                  title: "Current Location",
-                  subtitle: provider.currentLocationName,
-                  isCurrentLocation: true,
-                  onTap: () => context.push(
-                    '/weather',
-                  ), // No extra = null = current location
-                );
-              }
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  style: GoogleFonts.poppins(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Search cities...",
+                    hintStyle: GoogleFonts.poppins(color: Colors.white38),
+                    prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.clear,
+                              color: Colors.white38,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _searchQuery = "";
+                              });
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: filteredCities.isEmpty && _searchQuery.isNotEmpty
+                    ? Center(
+                        child: Text(
+                          "No cities found",
+                          style: GoogleFonts.poppins(color: Colors.white54),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _searchQuery.isEmpty
+                            ? filteredCities.length + 1
+                            : filteredCities.length,
+                        itemBuilder: (context, index) {
+                          if (_searchQuery.isEmpty && index == 0) {
+                            return _buildCityTile(
+                              context,
+                              title: "Current Location",
+                              subtitle: provider.currentLocationName,
+                              isCurrentLocation: true,
+                              onTap: () => context.push('/weather'),
+                            );
+                          }
 
-              final city = savedCities[index - 1];
-              return _buildCityTile(
-                context,
-                title: city.name,
-                subtitle: city.displayName,
-                onTap: () => context.push('/weather', extra: city),
-                onDelete: () {
-                  provider.removeCity(city);
-                },
-              );
-            },
+                          final city =
+                              filteredCities[_searchQuery.isEmpty
+                                  ? index - 1
+                                  : index];
+                          return _buildCityTile(
+                            context,
+                            title: city.name,
+                            subtitle: city.displayName,
+                            onTap: () => context.push('/weather', extra: city),
+                            onDelete: () {
+                              provider.removeCity(city);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),

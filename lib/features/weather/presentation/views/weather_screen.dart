@@ -120,7 +120,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
               ),
               IconButton(
                 icon: const Icon(CupertinoIcons.settings, color: Colors.white),
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/settings');
+                },
               ),
             ],
           ),

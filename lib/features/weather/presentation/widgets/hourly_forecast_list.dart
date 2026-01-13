@@ -4,6 +4,9 @@ import 'package:feather/core/theme/glass_container.dart';
 import 'package:feather/core/utils/weather_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
+import 'package:feather/core/utils/unit_converters.dart';
 
 class HourlyForecastList extends StatelessWidget {
   final Weather weather;
@@ -31,6 +34,9 @@ class HourlyForecastList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final settings = context.watch<SettingsProvider>();
+    final tempSymbol = UnitConverters.getTemperatureSymbol(settings.tempUnit);
+
     int startIndex = 0;
     if (weather.hourly?.time != null) {
       final currentHourStr = now.toIso8601String().substring(0, 13);
@@ -76,7 +82,12 @@ class HourlyForecastList extends StatelessWidget {
 
                   final timeStr = weather.hourly!.time![index];
                   final date = DateTime.parse(timeStr);
-                  final temp = weather.hourly!.temperature2m![index];
+                  final rawTemp = (weather.hourly!.temperature2m![index] as num)
+                      .toDouble();
+                  final convertedTemp = UnitConverters.convertTemperature(
+                    rawTemp,
+                    settings.tempUnit,
+                  );
                   final code = weather.hourly!.weatherCode![index];
                   final isDay = _isDay(date, weather);
 
@@ -105,7 +116,7 @@ class HourlyForecastList extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '${(temp as num).round()}°',
+                          '${convertedTemp.round()}$tempSymbol',
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

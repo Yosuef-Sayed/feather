@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:feather/core/services/location_service.dart';
 import 'package:feather/features/weather/data/models/weather.dart';
 import 'package:feather/features/weather/data/models/city.dart';
-import 'package:feather/features/weather/services/weather_service.dart';
+import 'package:feather/features/weather/data/datasources/remote/weather_remote_datasource.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class WeatherProvider extends ChangeNotifier {
-  final WeatherService _weatherService;
+  final WeatherRemoteDataSource _weatherRemoteDataSource;
   final LocationService _locationService;
 
   Weather? _weather;
@@ -18,9 +18,9 @@ class WeatherProvider extends ChangeNotifier {
   // Cache check can be enhanced, but for now simple in-memory
 
   WeatherProvider({
-    required WeatherService weatherService,
+    required WeatherRemoteDataSource weatherRemoteDataSource,
     required LocationService locationService,
-  }) : _weatherService = weatherService,
+  }) : _weatherRemoteDataSource = weatherRemoteDataSource,
        _locationService = locationService;
 
   Weather? get weather => _weather;
@@ -37,7 +37,7 @@ class WeatherProvider extends ChangeNotifier {
         position.longitude,
       );
 
-      _weather = await _weatherService.getWeather(
+      _weather = await _weatherRemoteDataSource.getWeather(
         position.latitude,
         position.longitude,
       );
@@ -53,7 +53,7 @@ class WeatherProvider extends ChangeNotifier {
     _setLoading(true);
     _currentLocationName = name;
     try {
-      _weather = await _weatherService.getWeather(lat, lon);
+      _weather = await _weatherRemoteDataSource.getWeather(lat, lon);
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -63,7 +63,7 @@ class WeatherProvider extends ChangeNotifier {
   }
 
   Future<List<Map<String, dynamic>>> searchSuggestions(String query) async {
-    return await _weatherService.searchCity(query);
+    return await _weatherRemoteDataSource.searchCity(query);
   }
 
   Future<void> searchWeather(String query) async {
@@ -78,7 +78,7 @@ class WeatherProvider extends ChangeNotifier {
         );
         _currentLocationName = name.isEmpty ? query : name;
 
-        _weather = await _weatherService.getWeather(
+        _weather = await _weatherRemoteDataSource.getWeather(
           location.latitude,
           location.longitude,
         );

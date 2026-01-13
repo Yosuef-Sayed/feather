@@ -4,6 +4,9 @@ import 'package:feather/core/theme/glass_container.dart';
 import 'package:feather/core/utils/weather_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
+import 'package:feather/core/utils/unit_converters.dart';
 
 class DailyForecastList extends StatefulWidget {
   final Weather weather;
@@ -21,6 +24,9 @@ class _DailyForecastListState extends State<DailyForecastList> {
   Widget build(BuildContext context) {
     final dailyParams = widget.weather.daily;
     if (dailyParams?.time == null) return const SizedBox();
+
+    final settings = context.watch<SettingsProvider>();
+    final tempSymbol = UnitConverters.getTemperatureSymbol(settings.tempUnit);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,14 +61,23 @@ class _DailyForecastListState extends State<DailyForecastList> {
                     final date = DateTime.parse(dailyParams.time![index]);
                     final code =
                         (dailyParams.weatherCode![index] as num?)?.toInt() ?? 0;
-                    final max =
+                    final rawMax =
                         (dailyParams.temperature2mMax![index] as num?)
                             ?.toDouble() ??
                         0.0;
-                    final min =
+                    final rawMin =
                         (dailyParams.temperature2mMin![index] as num?)
                             ?.toDouble() ??
                         0.0;
+
+                    final max = UnitConverters.convertTemperature(
+                      rawMax,
+                      settings.tempUnit,
+                    );
+                    final min = UnitConverters.convertTemperature(
+                      rawMin,
+                      settings.tempUnit,
+                    );
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -94,14 +109,14 @@ class _DailyForecastListState extends State<DailyForecastList> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 SizedBox(
-                                  width: 50,
+                                  width: 60,
                                   child: Align(
                                     alignment: Alignment.center,
                                     child: Text(
-                                      '${min.round()}°',
+                                      '${min.round()}$tempSymbol',
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -114,21 +129,21 @@ class _DailyForecastListState extends State<DailyForecastList> {
                                       '/',
                                       style: GoogleFonts.poppins(
                                         color: Colors.white70,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 40,
+                                  width: 50,
                                   child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                      '${max.round()}°',
+                                      '${max.round()}$tempSymbol',
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),

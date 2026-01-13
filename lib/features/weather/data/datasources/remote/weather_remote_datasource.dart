@@ -5,10 +5,11 @@ import 'package:feather/features/weather/data/models/weather.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-class WeatherService {
+class WeatherRemoteDataSource {
   final http.Client client;
 
-  WeatherService({http.Client? client}) : client = client ?? http.Client();
+  WeatherRemoteDataSource({http.Client? client})
+    : client = client ?? http.Client();
 
   Future<Weather> getWeather(double lat, double lon) async {
     final Uri uri = Uri.parse(ApiConstants.forecastEndpoint).replace(
