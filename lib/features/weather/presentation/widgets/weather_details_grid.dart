@@ -6,6 +6,7 @@ import 'package:weather_icons/weather_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
 import 'package:feather/core/utils/unit_converters.dart';
+import 'package:feather/core/utils/timezone_utils.dart';
 
 class WeatherDetailsGrid extends StatelessWidget {
   final Weather weather;
@@ -14,7 +15,7 @@ class WeatherDetailsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = TimeZoneUtils.getLocationTime(weather);
     final settings = context.watch<SettingsProvider>();
 
     int index = 0;

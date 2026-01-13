@@ -11,11 +11,10 @@ class WeatherProvider extends ChangeNotifier {
   final LocationService _locationService;
 
   Weather? _weather;
+  Weather? _currentLocationWeather;
   bool _isLoading = false;
   String? _error;
   String _currentLocationName = "Locating...";
-
-  // Cache check can be enhanced, but for now simple in-memory
 
   WeatherProvider({
     required WeatherRemoteDataSource weatherRemoteDataSource,
@@ -24,6 +23,7 @@ class WeatherProvider extends ChangeNotifier {
        _locationService = locationService;
 
   Weather? get weather => _weather;
+  Weather? get currentLocationWeather => _currentLocationWeather;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String get currentLocationName => _currentLocationName;
@@ -41,6 +41,7 @@ class WeatherProvider extends ChangeNotifier {
         position.latitude,
         position.longitude,
       );
+      _currentLocationWeather = _weather;
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -104,6 +105,36 @@ class WeatherProvider extends ChangeNotifier {
       final List<dynamic> decoded = jsonDecode(citiesJson);
       _savedCities = decoded.map((e) => City.fromJson(e)).toList();
       notifyListeners();
+
+      // Silently fetch missing offsets for existing cities
+      _fetchMissingOffsets();
+    }
+  }
+
+  Future<void> _fetchMissingOffsets() async {
+    bool updated = false;
+    for (int i = 0; i < _savedCities.length; i++) {
+      if (_savedCities[i].utcOffsetSeconds == null) {
+        try {
+          final weather = await _weatherRemoteDataSource.getWeather(
+            _savedCities[i].latitude,
+            _savedCities[i].longitude,
+          );
+          _savedCities[i] = City(
+            name: _savedCities[i].name,
+            latitude: _savedCities[i].latitude,
+            longitude: _savedCities[i].longitude,
+            country: _savedCities[i].country,
+            admin1: _savedCities[i].admin1,
+            utcOffsetSeconds: weather.utcOffsetSeconds,
+          );
+          updated = true;
+        } catch (_) {}
+      }
+    }
+    if (updated) {
+      await _saveCitiesToPrefs();
+      notifyListeners();
     }
   }
 
@@ -111,7 +142,25 @@ class WeatherProvider extends ChangeNotifier {
     if (!_savedCities.any(
       (c) => c.name == city.name && c.country == city.country,
     )) {
-      _savedCities.add(city);
+      // Fetch weather to get the correct timezone offset before saving
+      try {
+        final weather = await _weatherRemoteDataSource.getWeather(
+          city.latitude,
+          city.longitude,
+        );
+        final cityWithOffset = City(
+          name: city.name,
+          latitude: city.latitude,
+          longitude: city.longitude,
+          country: city.country,
+          admin1: city.admin1,
+          utcOffsetSeconds: weather.utcOffsetSeconds,
+        );
+        _savedCities.add(cityWithOffset);
+      } catch (e) {
+        // If weather fetch fails, add without offset
+        _savedCities.add(city);
+      }
       await _saveCitiesToPrefs();
       notifyListeners();
     }

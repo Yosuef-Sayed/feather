@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
 import 'package:feather/core/utils/unit_converters.dart';
+import 'package:feather/core/utils/timezone_utils.dart';
 
 class HourlyForecastList extends StatelessWidget {
   final Weather weather;
@@ -33,7 +34,8 @@ class HourlyForecastList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    // Use location-specific time instead of device time
+    final now = TimeZoneUtils.getLocationTime(weather);
     final settings = context.watch<SettingsProvider>();
     final tempSymbol = UnitConverters.getTemperatureSymbol(settings.tempUnit);
 

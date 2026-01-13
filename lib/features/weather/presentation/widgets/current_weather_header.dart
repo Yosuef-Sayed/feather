@@ -7,33 +7,17 @@ import 'package:weather_icons/weather_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:feather/features/settings/presentation/providers/settings_provider.dart';
 import 'package:feather/core/utils/unit_converters.dart';
+import 'package:feather/core/utils/timezone_utils.dart';
 
 class CurrentWeatherHeader extends StatelessWidget {
   final Weather weather;
 
   const CurrentWeatherHeader({super.key, required this.weather});
 
-  bool _isDay(DateTime time, Weather weather) {
-    if (weather.daily?.sunrise == null || weather.daily?.sunset == null) {
-      return true; // Default to day
-    }
-    try {
-      final dateStr = time.toIso8601String().substring(0, 10);
-      final dailyIndex = weather.daily!.time!.indexOf(dateStr);
-      if (dailyIndex == -1) return true;
-
-      final sunrise = DateTime.parse(weather.daily!.sunrise![dailyIndex]);
-      final sunset = DateTime.parse(weather.daily!.sunset![dailyIndex]);
-
-      return time.isAfter(sunrise) && time.isBefore(sunset);
-    } catch (_) {
-      return true;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    // Use location-specific time instead of device time
+    final now = TimeZoneUtils.getLocationTime(weather);
     final settings = context.watch<SettingsProvider>();
 
     int index = 0;
@@ -67,7 +51,7 @@ class CurrentWeatherHeader extends StatelessWidget {
     );
     final tempSymbol = UnitConverters.getTemperatureSymbol(settings.tempUnit);
 
-    final isDay = _isDay(now, weather);
+    final isDay = TimeZoneUtils.isLocationDaytime(weather);
 
     final rawMax =
         (weather.daily?.temperature2mMax?.isNotEmpty == true
@@ -102,6 +86,15 @@ class CurrentWeatherHeader extends StatelessWidget {
           duration: 600.ms,
           curve: Curves.elasticOut,
         ),
+        const SizedBox(height: 10),
+        Text(
+          TimeZoneUtils.getFormattedLocationTime(weather),
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ).animate().fadeIn(delay: 250.ms),
         const SizedBox(height: 10),
         Text(
           '${convertedTemp.round()}$tempSymbol',

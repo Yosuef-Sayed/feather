@@ -6,6 +6,7 @@ class City extends Equatable {
   final double longitude;
   final String country;
   final String admin1;
+  final int? utcOffsetSeconds;
 
   const City({
     required this.name,
@@ -13,6 +14,7 @@ class City extends Equatable {
     required this.longitude,
     this.country = '',
     this.admin1 = '',
+    this.utcOffsetSeconds,
   });
 
   factory City.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class City extends Equatable {
       longitude: (json['longitude'] as num).toDouble(),
       country: json['country'] as String? ?? '',
       admin1: json['admin1'] as String? ?? '',
+      utcOffsetSeconds: json['utc_offset_seconds'] as int?,
     );
   }
 
@@ -32,6 +35,7 @@ class City extends Equatable {
       'longitude': longitude,
       'country': country,
       'admin1': admin1,
+      'utc_offset_seconds': utcOffsetSeconds,
     };
   }
 
@@ -45,5 +49,12 @@ class City extends Equatable {
   }
 
   @override
-  List<Object?> get props => [name, latitude, longitude, country, admin1];
+  List<Object?> get props => [
+    name,
+    latitude,
+    longitude,
+    country,
+    admin1,
+    utcOffsetSeconds,
+  ];
 }

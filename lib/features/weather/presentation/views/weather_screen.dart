@@ -13,6 +13,7 @@ import 'package:feather/features/weather/presentation/widgets/daily_forecast_lis
 import 'package:feather/features/weather/presentation/widgets/weather_details_grid.dart';
 import 'package:feather/features/weather/data/models/city.dart';
 import 'package:feather/core/utils/weather_utils.dart';
+import 'package:feather/core/utils/timezone_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 class WeatherScreen extends StatefulWidget {
@@ -48,19 +49,12 @@ class _WeatherScreenState extends State<WeatherScreen> {
         List<Color> gradientColors = [Colors.blue, Colors.lightBlue]; // Default
         if (provider.weather != null &&
             provider.weather!.hourly?.weatherCode != null) {
-          // Find current code roughly
-          final now = DateTime.now();
+          // Use location-specific time for gradient and day/night determination
           final code = provider.weather!.hourly!.weatherCode!.isNotEmpty
-              ? provider.weather!.hourly!.weatherCode![0]
-                    as int // simplified
+              ? provider.weather!.hourly!.weatherCode![0] as int
               : 0;
-          // A better check for 'now' index?
-          // Reuse logic? Or just take first which is usually 00:00 unless current=true
-          // To make it dynamic based on time of day (requested feature), we should check the hour.
-          // But let's use the code we found in Header widget?
-          // We can just duplicate simple logic here:
-          // Gradient based on code + isNight?
-          bool isNight = now.hour < 6 || now.hour > 19;
+
+          bool isNight = !TimeZoneUtils.isLocationDaytime(provider.weather!);
           gradientColors = WeatherUtils.getWeatherGradient(
             code,
             isNight: isNight,

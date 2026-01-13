@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:feather/core/utils/timezone_utils.dart';
+import 'package:feather/features/weather/data/models/weather.dart';
 import 'package:feather/features/weather/presentation/providers/weather_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +17,7 @@ class CitiesListScreen extends StatefulWidget {
 class _CitiesListScreenState extends State<CitiesListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  Timer? _timer;
 
   @override
   void initState() {
@@ -22,11 +26,33 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
       context.read<WeatherProvider>().loadSavedCities();
       context.read<WeatherProvider>().loadCurrentLocationWeather();
     });
+    _startTimer();
+  }
+
+  void _startTimer() {
+    // Calculate seconds until the next minute starts to synchronize
+    final now = DateTime.now();
+    final secondsUntilNextMinute = 60 - now.second;
+
+    _timer = Timer(Duration(seconds: secondsUntilNextMinute), () {
+      if (mounted) {
+        setState(() {}); // Initial update at the start of the minute
+        // Then repeat every minute
+        _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+          if (mounted) {
+            setState(() {});
+          } else {
+            timer.cancel();
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -129,6 +155,7 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
                               title: "Current Location",
                               subtitle: provider.currentLocationName,
                               isCurrentLocation: true,
+                              weather: provider.currentLocationWeather,
                               onTap: () => context.push('/weather'),
                             );
                           }
@@ -141,6 +168,7 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
                             context,
                             title: city.name,
                             subtitle: city.displayName,
+                            utcOffsetSeconds: city.utcOffsetSeconds,
                             onTap: () => context.push('/weather', extra: city),
                             onDelete: () {
                               provider.removeCity(city);
@@ -161,6 +189,8 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    int? utcOffsetSeconds,
+    Weather? weather,
     VoidCallback? onDelete,
     bool isCurrentLocation = false,
   }) {
@@ -194,10 +224,29 @@ class _CitiesListScreenState extends State<CitiesListScreen> {
           subtitle,
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13),
         ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white30,
-          size: 16,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isCurrentLocation || weather != null)
+              Text(
+                isCurrentLocation
+                    ? TimeZoneUtils.getFormattedLocationTime(weather!)
+                    : TimeZoneUtils.getFormattedTimeFromOffset(
+                        utcOffsetSeconds,
+                      ),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white30,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );
