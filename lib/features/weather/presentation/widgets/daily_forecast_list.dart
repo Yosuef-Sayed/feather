@@ -39,7 +39,7 @@ class _DailyForecastListState extends State<DailyForecastList> {
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
           child: GlassContainer(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -73,6 +73,8 @@ class _DailyForecastListState extends State<DailyForecastList> {
                             child: Text(
                               index == 0
                                   ? "Today"
+                                  : index == 1
+                                  ? "Tomorrow"
                                   : DateFormat('EEEE').format(date),
                               style: GoogleFonts.poppins(
                                 color: Colors.white,

@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -117,6 +118,10 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   context.push('/cities');
                 },
               ),
+              IconButton(
+                icon: const Icon(CupertinoIcons.settings, color: Colors.white),
+                onPressed: () {},
+              ),
             ],
           ),
           body: Container(
@@ -208,7 +213,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
         HourlyForecastList(weather: provider.weather!),
         const SizedBox(height: 20),
         DailyForecastList(weather: provider.weather!),
-        const SizedBox(height: 10),
         WeatherDetailsGrid(weather: provider.weather!),
         const SizedBox(height: 40),
         const Center(
@@ -217,7 +221,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             style: TextStyle(color: Colors.white38, fontSize: 10),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
       ],
     );
   }

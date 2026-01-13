@@ -32,6 +32,9 @@ class MainApp extends StatelessWidget {
             selectionColor: Colors.white.withOpacity(0.3),
             selectionHandleColor: Colors.white,
           ),
+          progressIndicatorTheme: const ProgressIndicatorThemeData(
+            color: Colors.blueGrey,
+          ),
         ),
         debugShowCheckedModeBanner: false,
         title: 'Feather',
